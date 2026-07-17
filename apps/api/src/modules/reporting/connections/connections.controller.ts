@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -15,66 +16,63 @@ import { ModuleActiveGuard } from '../../../core/module-registry/module-active.g
 import { RequireModule } from '../../../core/module-registry/require-module.decorator';
 import { ZodValidationPipe } from '../../../shared/validation/zod-validation.pipe';
 import { AuditLogService } from '../../../core/audit-log/audit-log.service';
-import { CreateReportDto, createReportSchema } from '../dto/create-report.dto';
+import {
+  CreateConnectionDto,
+  createConnectionSchema,
+} from '../dto/create-connection.dto';
 import { REPORTING_MODULE_KEY } from '../reporting.constants';
-import { ReportsService } from './reports.service';
+import { ConnectionsService } from './connections.service';
 
-@Controller('reporting/reports')
+/**
+ * Rutas de conexiones del módulo de reportes. `@RequireModule` + ModuleActiveGuard
+ * garantizan que solo respondan si la organización tiene el módulo activo.
+ */
+@Controller('reporting/connections')
 @RequireModule(REPORTING_MODULE_KEY)
 @UseGuards(ModuleActiveGuard, RolesGuard)
-export class ReportsController {
+export class ConnectionsController {
   constructor(
-    private readonly reports: ReportsService,
+    private readonly connections: ConnectionsService,
     private readonly auditLog: AuditLogService,
   ) {}
 
   @Get()
   list(@CurrentUser() user: AuthenticatedUser) {
-    return this.reports.list(user.organizationId);
+    return this.connections.list(user.organizationId);
   }
 
-  @Get(':id')
-  getOne(
-    @CurrentUser() user: AuthenticatedUser,
-    @Param('id') id: string,
-  ) {
-    return this.reports.getById(user.organizationId, id);
-  }
-
-  /** Crea un reporte. ADMIN u OPERATOR. */
+  /** Conecta una fuente de datos. ADMIN u OPERATOR. */
   @Post()
   @Roles(UserRole.ADMIN, UserRole.OPERATOR)
-  async create(
+  async connect(
     @CurrentUser() user: AuthenticatedUser,
-    @Body(new ZodValidationPipe(createReportSchema)) body: CreateReportDto,
+    @Body(new ZodValidationPipe(createConnectionSchema))
+    body: CreateConnectionDto,
   ) {
-    const report = await this.reports.create(user.organizationId, body);
+    const conn = await this.connections.create(user.organizationId, body);
     await this.auditLog.record({
       organizationId: user.organizationId,
       userId: user.userId,
-      action: 'reporting.report.created',
-      metadata: { reportId: report.id, connectionId: report.connectionId },
+      action: 'reporting.connection.created',
+      metadata: { provider: conn.provider, connectionId: conn.id },
     });
-    return report;
+    return conn;
   }
 
-  /** Dispara la generación del reporte. ADMIN u OPERATOR. */
-  @Post(':id/generate')
+  /** Desconecta una fuente de datos. ADMIN u OPERATOR. */
+  @Delete(':id')
   @Roles(UserRole.ADMIN, UserRole.OPERATOR)
-  generate(
+  async disconnect(
     @CurrentUser() user: AuthenticatedUser,
     @Param('id') id: string,
   ) {
-    return this.reports.generate(user.organizationId, id);
-  }
-
-  /** Reenvía el reporte al cliente. ADMIN u OPERATOR. */
-  @Post(':id/resend')
-  @Roles(UserRole.ADMIN, UserRole.OPERATOR)
-  resend(
-    @CurrentUser() user: AuthenticatedUser,
-    @Param('id') id: string,
-  ) {
-    return this.reports.resend(user.organizationId, id);
+    const conn = await this.connections.disconnect(user.organizationId, id);
+    await this.auditLog.record({
+      organizationId: user.organizationId,
+      userId: user.userId,
+      action: 'reporting.connection.disconnected',
+      metadata: { provider: conn.provider, connectionId: conn.id },
+    });
+    return conn;
   }
 }
