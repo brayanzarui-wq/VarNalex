@@ -1,4 +1,3 @@
-import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
@@ -39,10 +38,9 @@ async function bootstrap() {
   // Prefijo común de la API.
   app.setGlobalPrefix('api');
 
-  // Validación adicional a nivel framework (los DTOs usan Zod por endpoint).
-  app.useGlobalPipes(
-    new ValidationPipe({ whitelist: true, transform: true }),
-  );
+  // La validación de entrada se hace con Zod por endpoint (ZodValidationPipe),
+  // por lo que no se registra el ValidationPipe de NestJS (que requiere
+  // class-validator). Ver sección 7 del contexto.
 
   const port = config.get<number>('PORT', 3000);
   await app.listen(port);
