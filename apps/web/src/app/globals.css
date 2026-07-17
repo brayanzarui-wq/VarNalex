@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Tokens de tema (shadcn/ui) derivados de la paleta oficial de VarNalex
+ * (sección 2). Valores en HSL para permitir opacidades de Tailwind.
+ *
+ *   Primary  #11224D -> 223 64% 18%
+ *   Accent   #19A7A5 -> 179 74% 38%
+ *   Surface  #F8FAFC -> 210 40% 98%
+ *   Border   #E2E8F0 -> 214 32% 91%
+ *   Muted    #64748B -> 215 16% 47%
+ *   Success  #10B981 -> 160 84% 39%
+ *   Warning  #F59E0B ->  38 92% 50%
+ *   Danger   #EF4444 ->   0 84% 60%
+ */
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 223 64% 18%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 223 64% 18%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 223 64% 18%;
+
+    --primary: 223 64% 18%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 223 64% 18%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 179 74% 38%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 160 84% 39%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 223 64% 18%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 179 74% 38%;
+
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+}
